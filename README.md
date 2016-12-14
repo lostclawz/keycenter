@@ -9,9 +9,11 @@ Javascript keyboard shortcut management system. Uses a single top-level listener
 
 Babel requirements:  
 
-	*	transform-class-properties  
-	*	transform-object-rest-spread  
-	*	transform-es2015-destructuring  
+*	transform-class-properties  
+
+*	transform-object-rest-spread  
+
+*	transform-es2015-destructuring  
 
 
 ## keyCenter.addListener  
