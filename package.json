@@ -1,0 +1,46 @@
+{
+  "name": "keycenter",
+  "version": "1.0.0",
+  "description": "Javascript keyboard shortcut management system. Uses a single top-level listener for all keyboard events.",
+  "main": "KeyCenter.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/lostclawz/keycenter.git"
+  },
+  "keywords": [
+    "Keyboard",
+    "shortcut",
+    "management",
+    "react"
+  ],
+  "author": "Philip Kuperberg",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lostclawz/keycenter/issues"
+  },
+  "homepage": "https://github.com/lostclawz/keycenter#readme",
+  "devDependencies": {
+    "babel": "^6.5.2",
+    "babel-core": "^6.20.0",
+    "babel-plugin-transform-class-properties": "^6.19.0",
+    "babel-plugin-transform-es2015-destructuring": "^6.19.0",
+    "babel-plugin-transform-object-rest-spread": "^6.20.2",
+    "babel-preset-es2015": "^6.18.0",
+    "babelify": "^7.3.0",
+    "browserify": "^13.1.1",
+    "chalk": "^1.1.3",
+    "clear": "0.0.1",
+    "gulp": "^3.9.1",
+    "gulp-if": "^2.0.2",
+    "gulp-rename": "^1.2.2",
+    "gulp-uglify": "^2.0.0",
+    "gulp-util": "^3.0.7",
+    "minimist": "^1.2.0",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.1.0",
+    "watchify": "^3.8.0"
+  },
+}

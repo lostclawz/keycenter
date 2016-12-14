@@ -1,0 +1,13 @@
+sftp-config.json
+js/lib/*
+backups/*
+images/*
+resources/*
+refresh.sh
+*.sublime-project
+*.sublime-workspace
+gulpfile.js
+.babelrc
+node_modules/*
+conf.json
+out/*
