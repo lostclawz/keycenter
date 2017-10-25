@@ -1,11 +1,30 @@
 /**
  * KeyCenter
- * (c) 2016 Philip Kuperberg
+ * (c) 2017 Philip Kuperberg
  * github.com/lostclawz/keycenter
  * 
- * Uses a single top-level event listener for all keyboard events
+ * Uses a single top-level event listener for all keyboard events.
+ * Use the keyListeners decorator to attach to your component's life cycle:
+ * 		@import keyListeners from './KeyCenter';
+ *
+ * 		@keyListeners
+ * 		class myComponent extends Component{
+ * 			constructor(props){
+ *				super(props);
+ *				props.addKeyListeners([
+ *					{
+ *						key: "Enter",
+ *						modifiers: {ctrlKey: true},
+ *						action: () => this.onSubmit()
+ *					}
+ *				]);
+ *			}
+ * 
+ * 		}
  *
  */
+
+import React, {Component} from 'react';
 
 /**
  * Class representing a KeyCenter instance
@@ -18,10 +37,10 @@ export class KeyCenter{
 	 * @constructor
 	 * @param  {Boolean} logging Whether logging is on
 	 */
-	constructor(logging=false){
+	constructor(logging=true){
 
 		// console logging toggle
-		this.logging = logging;
+		this.loggingOn = logging;
 		
 		// keys we're listening for
 		this.listeningFor = {};
@@ -36,7 +55,8 @@ export class KeyCenter{
 		this.addListener = this.addListener.bind(this);
 		this.removeListener = this.removeListener.bind(this);
 
-		
+		this.logging.bind(this);
+
 		// global key listener
 		document.addEventListener("keydown", this.keyDown, false);
 	}
@@ -46,11 +66,11 @@ export class KeyCenter{
 	 * 
 	 * @param  {boolean}	on 	whether console messages should be visible
 	 */
-	logging = (on=true) => {
-		this.logging = on;
+	logging(on=true){
+		this.loggingOn = on;
 	}
 
-	log = (args) => {
+	log = (...args) => {
 		if (this.logging === true){
 			console.log.apply(null, args);
 		}
@@ -59,23 +79,27 @@ export class KeyCenter{
 	keyDown(e){
 		this.log(e, e.key);
 		if (e.key in this.listeningFor){
+			let stopBubble = false;
 			this.listeningFor[e.key].forEach((kInfo) => {
 				let ignore = false;
-				this.modifierKeys.forEach((modType) => {
-					if (kInfo[modType] !== null
-						&& kInfo[modType] !== e[modType]){
-						ignore = true;
-					}
-				});
-				if (!ignore){
-					if (kInfo.preventDefault){
-						e.preventDefault();
-					}
-					if (kInfo.stopPropagation){
-						e.stopPropagation();
-					}
-					if (typeof kInfo.callback === 'function'){
-						kInfo.callback.call(null)
+				if (!stopBubble){
+					this.modifierKeys.forEach((modType) => {
+						if (kInfo[modType] !== null
+							&& kInfo[modType] !== e[modType]){
+							ignore = true;
+						}
+					});
+					if (!ignore){
+						if (kInfo.preventDefault){
+							e.preventDefault();
+						}
+						if (kInfo.stopPropagation){
+							e.stopPropagation();
+							stopBubble = true;
+						}
+						if (typeof kInfo.callback === 'function'){
+							kInfo.callback.call(null)
+						}
 					}
 				}
 			});
@@ -89,7 +113,7 @@ export class KeyCenter{
 	 * // For a react component, this is usually called on componentDidMount:
 	 *	 this.keyListeners = [];
 	 *	 this.keyListeners.push(
-	 *	 	KeyCenter.addListener("n", () => {
+	 *	 	keyCenter.addListener("n", () => {
 	 *	 		// action
 	 *	 	}, ['ctrlKey'])
 	 *	 );
@@ -116,7 +140,7 @@ export class KeyCenter{
 		}, modifierDefaults, modifiers);
 
 		if (key in this.listeningFor){
-			this.listeningFor[key].push(keyData);
+			this.listeningFor[key].unshift(keyData);
 		}
 		else {
 			this.listeningFor[key] = [keyData];
@@ -133,7 +157,7 @@ export class KeyCenter{
 	 * // In a React component, this should be called in componentWillUnmount:
 	 * componentWillUnmount() {
  	 *	   this.keyListeners.forEach((id) => {
- 	 *		   KeyCenter.removeListener(id);
+ 	 *		   keyCenter.removeListener(id);
  	 *	   });
  	 *	   this.keyListeners = [];
  	 * }
@@ -160,6 +184,75 @@ export class KeyCenter{
 
 }
 
+// The global KeyCenter instance
 const keyCenter = new KeyCenter();
+export keyCenter;
 
-export default keyCenter;
+
+
+
+/**
+ * React Component Decorator
+ */
+export default function keyListeners(WrappedComponent){
+	return class KeyListeners extends Component{
+
+		constructor(props){
+			super(props);
+			this.keyListeners = [];
+			this.addKeyListener = this.addKeyListener.bind(this);
+			this.addKeyListeners = this.addKeyListeners.bind(this);
+			this.removeKeyListener = this.removeKeyListener.bind(this);
+			this.removeAllKeyListeners = this.removeAllKeyListeners.bind(this);
+		}
+
+		componentWillUnmount() {
+			this.removeAllKeyListeners();
+		}
+
+		addKeyListener({
+			key,
+			action,
+			modifiers,
+			preventDefault=false,
+			stopPropagation=false
+		}){
+			let listenerId = keyCenter.addListener(
+				key,
+				action,
+				modifiers,
+				preventDefault,
+				stopPropagation
+			);
+			this.keyListeners.unshift(listenerId);
+			return listenerId;
+		}
+
+		addKeyListeners(listeners){
+			listeners.forEach(l => this.addKeyListener(l));
+		}
+
+		removeKeyListener(id){
+			keyCenter.removeListener(id);
+		}
+
+		removeAllKeyListeners(){
+			this.keyListeners.forEach((id) => {
+				keyCenter.removeListener(id);
+			});
+			this.keyListeners = [];
+		}
+
+		render(){
+			return (
+				<WrappedComponent
+					addKeyListener={this.addKeyListener}
+					addKeyListeners={this.addKeyListeners}
+					removeKeyListener={this.removeKeyListener}
+					removeAllKeyListeners={this.removeAllKeyListeners}
+					{...this.props}
+				/>
+			)
+		}
+	}
+}
